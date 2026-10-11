@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A2540" />
+      <stop offset="50%" stop-color="#1565C0" />
+      <stop offset="100%" stop-color="#0288D1" />
+    </linearGradient>
+
+    <!-- Document Gradient -->
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#EDF4FC" />
+    </linearGradient>
+
+    <!-- Fold Corner Gradient -->
+    <linearGradient id="foldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#90CAF9" />
+      <stop offset="100%" stop-color="#E3F2FD" />
+    </linearGradient>
+
+    <!-- Scanner Beam Gradient -->
+    <linearGradient id="scanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0" />
+      <stop offset="25%" stop-color="#00E5FF" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="75%" stop-color="#00E5FF" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Scanner Glow -->
+    <linearGradient id="scanArea" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0.0" />
+    </linearGradient>
+
+    <!-- Accent Gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3D00" />
+      <stop offset="100%" stop-color="#FF9100" />
+    </linearGradient>
+
+    <!-- Teal Gradient -->
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00B0FF" />
+      <stop offset="100%" stop-color="#00E5FF" />
+    </linearGradient>
+
+    <!-- Shadow -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#051B38" flood-opacity="0.5" />
+    </filter>
+    <filter id="docShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#051B38" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Base App Icon Squircle Background -->
+  <rect x="32" y="32" width="960" height="960" rx="220" ry="220" fill="url(#bgGrad)" />
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="36" y="36" width="952" height="952" rx="216" ry="216" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="6" />
+
+  <!-- Background Decorative Geometric Circles -->
+  <circle cx="820" cy="200" r="180" fill="#FFFFFF" fill-opacity="0.04" />
+  <circle cx="200" cy="850" r="220" fill="#00E5FF" fill-opacity="0.06" />
+
+  <!-- Main Document Base (White Sheet with Shadow) -->
+  <g filter="url(#docShadow)">
+    <!-- Sheet with folded top-right corner: 240,160 to 640,160; fold to 780,300; down to 780,820; left to 240,820 -->
+    <path d="M 260 160
+             L 640 160
+             L 764 284
+             L 764 820
+             C 764 840, 748 856, 728 856
+             L 260 856
+             C 240 856, 224 840, 224 820
+             L 224 196
+             C 224 176, 240 160, 260 160 Z"
+          fill="url(#docGrad)" />
+
+    <!-- Folded Corner Flap -->
+    <path d="M 640 160
+             L 764 284
+             L 664 284
+             C 650 284, 640 274, 640 260 Z"
+          fill="url(#foldGrad)" />
+    <!-- Fold crease shadow -->
+    <path d="M 640 284 L 764 284 L 640 160 Z" fill="#90CAF9" fill-opacity="0.4" />
+  </g>
+
+  <!-- Document Header Lines (Placeholders for Clean Doc Look) -->
+  <rect x="290" y="240" width="160" height="24" rx="12" fill="#1565C0" fill-opacity="0.85" />
+  <rect x="290" y="280" width="280" height="16" rx="8" fill="#90CAF9" fill-opacity="0.7" />
+
+  <!-- Scanner Target Overlay (Center of Document) -->
+  <!-- Scanner Beam Area Glow -->
+  <rect x="250" y="390" width="488" height="130" fill="url(#scanArea)" />
+  <!-- Laser Beam Line -->
+  <rect x="240" y="388" width="508" height="8" rx="4" fill="url(#scanGrad)" filter="url(#dropShadow)" />
+
+  <!-- Scanner Laser Nodes -->
+  <circle cx="260" cy="392" r="10" fill="#00E5FF" />
+  <circle cx="728" cy="392" r="10" fill="#00E5FF" />
+
+  <!-- Scanner Reticle Corner Brackets -->
+  <path d="M 280 370 L 280 340 L 310 340" fill="none" stroke="#0288D1" stroke-width="8" stroke-linecap="round" />
+  <path d="M 708 370 L 708 340 L 678 340" fill="none" stroke="#0288D1" stroke-width="8" stroke-linecap="round" />
+  <path d="M 280 490 L 280 520 L 310 520" fill="none" stroke="#0288D1" stroke-width="8" stroke-linecap="round" />
+  <path d="M 708 490 L 708 520 L 678 520" fill="none" stroke="#0288D1" stroke-width="8" stroke-linecap="round" />
+
+  <!-- Multi-Tool Suite Badges on Document -->
+  <!-- 1. PDF Tool Badge (Vibrant Orange/Red gradient pill) -->
+  <g transform="translate(280, 560)">
+    <rect x="0" y="0" width="130" height="72" rx="18" fill="url(#accentGrad)" />
+    <!-- PDF Text -->
+    <text x="65" y="46" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">PDF</text>
+  </g>
+
+  <!-- 2. Photo / Resize Tool Badge (Camera Aperture / Crop in Blue) -->
+  <g transform="translate(436, 560)">
+    <rect x="0" y="0" width="130" height="72" rx="18" fill="#E3F2FD" stroke="#90CAF9" stroke-width="3" />
+    <!-- Camera/Crop Icon -->
+    <circle cx="65" cy="36" r="18" fill="none" stroke="#1565C0" stroke-width="6" />
+    <circle cx="65" cy="36" r="7" fill="#1565C0" />
+    <path d="M 45 22 L 53 22 L 57 16 L 73 16 L 77 22 L 85 22" fill="none" stroke="#1565C0" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <!-- 3. QR / Barcode Utility Badge -->
+  <g transform="translate(592, 560)">
+    <rect x="0" y="0" width="130" height="72" rx="18" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="3" />
+    <!-- Mini QR Matrix -->
+    <rect x="25" y="16" width="16" height="16" fill="#2E7D32" />
+    <rect x="52" y="16" width="10" height="10" fill="#2E7D32" />
+    <rect x="25" y="40" width="16" height="16" fill="#2E7D32" />
+    <rect x="70" y="40" width="12" height="12" fill="#2E7D32" />
+    <rect x="68" y="16" width="14" height="14" fill="#2E7D32" />
+    <rect x="48" y="34" width="14" height="22" fill="#2E7D32" />
+  </g>
+
+  <!-- Bottom Hero Ribbon / Tool Sparkle -->
+  <g transform="translate(280, 680)">
+    <!-- Document Summary Text Lines -->
+    <rect x="0" y="12" width="300" height="16" rx="8" fill="#90CAF9" fill-opacity="0.7" />
+    <rect x="0" y="42" width="220" height="14" rx="7" fill="#BBDEFB" fill-opacity="0.8" />
+    <rect x="0" y="70" width="260" height="14" rx="7" fill="#E3F2FD" />
+
+    <!-- Handwriting Pen Tool Floating at bottom right -->
+    <g transform="translate(350, 10)">
+      <circle cx="50" cy="50" r="44" fill="#1976D2" filter="url(#dropShadow)" />
+      <!-- Stylized Nib / Magic Pen -->
+      <path d="M 32 68 L 36 48 L 58 26 C 62 22, 68 22, 72 26 C 76 30, 76 36, 72 40 L 50 62 L 30 70 Z" fill="#FFFFFF" />
+      <circle cx="52" cy="46" r="4" fill="#1976D2" />
+    </g>
+  </g>
+
+  <!-- Glowing Corner Sparkle (Top-Left of Document) -->
+  <path d="M 210 170 Q 210 200, 240 200 Q 210 200, 210 230 Q 210 200, 180 200 Q 210 200, 210 170 Z" fill="#00E5FF" filter="url(#dropShadow)" />
+</svg>

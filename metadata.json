@@ -1,0 +1,8 @@
+{
+  "name": "AllToolsPro",
+  "description": "All-in-one PDF tools, photo resizer, document scanner, handwriting generator, QR codes, and utilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
