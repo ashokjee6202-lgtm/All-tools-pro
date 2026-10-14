@@ -2,12 +2,16 @@ package com.example
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -16,7 +20,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -28,10 +34,12 @@ import androidx.navigation.navArgument
 import com.example.model.RecentFileManager
 import com.example.model.ToolCategory
 import com.example.ui.screens.*
-import com.example.ui.theme.BlueContainer
-import com.example.ui.theme.BluePrimaryVariant
+import com.example.ui.theme.BrandBlue
+import com.example.ui.theme.BrandPurple
 import com.example.ui.theme.MyApplicationTheme
+import com.example.util.LocaleManager
 import com.example.util.Strings
+import kotlinx.coroutines.launch
 
 sealed class NavItem(val route: String, val labelKey: String, val icon: ImageVector) {
     object Home : NavItem("home", "nav_home", Icons.Default.Home)
@@ -74,11 +82,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        LocaleManager.init(applicationContext)
+        ThemePreferences.init(applicationContext)
         RecentFileManager.init(applicationContext)
+        com.example.model.DocumentManager.init(applicationContext)
         com.example.util.SampleDataProvider.initRecentSampleFiles(applicationContext)
 
         setContent {
-            MyApplicationTheme {
+            val isDark = when (ThemePreferences.themeMode) {
+                AppThemeMode.SYSTEM -> isSystemInDarkTheme()
+                AppThemeMode.LIGHT -> false
+                AppThemeMode.DARK -> true
+            }
+
+            MyApplicationTheme(darkTheme = isDark) {
                 MainAppContainer()
             }
         }
@@ -92,6 +109,10 @@ fun MainAppContainer() {
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     val bottomNavItems = listOf(
         NavItem.Home,
         NavItem.Tools,
@@ -100,30 +121,90 @@ fun MainAppContainer() {
         NavItem.Settings
     )
 
-    // Bottom navigation is shown on the primary 5 tabs
+    // Bottom navigation is visible ONLY on the 5 primary tabs
     val isBottomBarVisible = bottomNavItems.any { item ->
-        currentRoute?.startsWith(item.route) == true
+        currentRoute != null && (currentRoute == item.route || currentRoute.startsWith("${item.route}?"))
+    }
+
+    // System Back Button Handling:
+    // - On Home tab: normal back exits the app (no BackHandler interception).
+    // - On any of the other 4 primary tabs: system back takes the user back to Home first.
+    if (isBottomBarVisible && currentRoute != NavItem.Home.route) {
+        BackHandler {
+            navController.navigate(NavItem.Home.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
+    fun navigateToHomeDirectly() {
+        navController.navigate(NavItem.Home.route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                inclusive = false
+            }
+            launchSingleTop = true
+        }
+    }
+
+    fun showFavoriteFeedback(isAdded: Boolean) {
+        coroutineScope.launch {
+            val message = if (isAdded) Strings.get("added_to_favorites") else Strings.get("removed_from_favorites")
+            val actionLabel = Strings.get("undo")
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = actionLabel,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                // Undo favorite toggle
+                val lastToggledId = RecentFileManager.lastToggledFavoriteId
+                if (lastToggledId != null) {
+                    RecentFileManager.toggleFavorite(context, lastToggledId)
+                }
+            }
+        }
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            if (isBottomBarVisible && currentRoute != ToolRoutes.DOC_SCANNER) {
+                FloatingActionButton(
+                    onClick = { navController.navigate(ToolRoutes.DOC_SCANNER) },
+                    containerColor = BrandBlue,
+                    contentColor = androidx.compose.ui.graphics.Color.White,
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    modifier = Modifier.testTag("prominent_scan_fab")
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.CameraAlt,
+                        contentDescription = Strings.get("scan_new_docs")
+                    )
+                }
+            }
+        },
         bottomBar = {
             if (isBottomBarVisible) {
                 NavigationBar(
                     modifier = Modifier.testTag("app_bottom_nav"),
                     containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
+                    tonalElevation = 6.dp
                 ) {
                     val navItemColors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = BluePrimaryVariant,
-                        selectedTextColor = BluePrimaryVariant,
-                        indicatorColor = BlueContainer,
+                        selectedIconColor = BrandBlue,
+                        selectedTextColor = BrandBlue,
+                        indicatorColor = BrandBlue.copy(alpha = 0.16f),
                         unselectedIconColor = androidx.compose.ui.graphics.Color(0xFF64748B),
                         unselectedTextColor = androidx.compose.ui.graphics.Color(0xFF64748B)
                     )
 
                     bottomNavItems.forEach { item ->
-                        val isSelected = currentRoute?.startsWith(item.route) == true
+                        val isSelected = currentRoute == item.route || currentRoute?.startsWith("${item.route}?") == true
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = {
@@ -135,8 +216,18 @@ fun MainAppContainer() {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(item.icon, contentDescription = Strings.get(item.labelKey)) },
-                            label = { Text(Strings.get(item.labelKey)) },
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = Strings.get(item.labelKey)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = Strings.get(item.labelKey),
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
                             colors = navItemColors
                         )
                     }
@@ -165,6 +256,9 @@ fun MainAppContainer() {
                         },
                         onViewAllRecent = {
                             navController.navigate(NavItem.Files.route)
+                        },
+                        onFavoriteToggled = { isAdded ->
+                            showFavoriteFeedback(isAdded)
                         }
                     )
                 }
@@ -193,7 +287,13 @@ fun MainAppContainer() {
                 composable(NavItem.Files.route) {
                     RecentFilesScreen(
                         onNavigateBack = {
-                            navController.popBackStack()
+                            navigateToHomeDirectly()
+                        },
+                        onOpenTool = {
+                            navController.navigate(NavItem.Tools.route)
+                        },
+                        onScanDocument = {
+                            navController.navigate(ToolRoutes.DOC_SCANNER)
                         }
                     )
                 }
@@ -211,27 +311,30 @@ fun MainAppContainer() {
                 composable(NavItem.Settings.route) {
                     SettingsScreen(
                         onNavigateBack = {
-                            navController.popBackStack()
+                            navigateToHomeDirectly()
                         }
                     )
                 }
 
-                // Dedicated Tool Routes
+                // Dedicated Inner Tool Routes
                 composable(ToolRoutes.DOC_SCANNER) {
                     DocumentScannerScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.PHOTO_RESIZE) {
                     PhotoToolsScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.PASSPORT_PHOTO) {
                     PhotoToolsScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
@@ -248,39 +351,45 @@ fun MainAppContainer() {
                     val toolParam = backStackEntry.arguments?.getString("tool")
                     PdfToolsScreen(
                         initialTool = toolParam,
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.HANDWRITING) {
                     HandwritingScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.QR_GENERATOR) {
                     QrToolsScreen(
                         initialScanMode = false,
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.QR_SCANNER) {
                     QrToolsScreen(
                         initialScanMode = true,
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.SIGN_PDF) {
                     SignatureMakerScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
 
                 composable(ToolRoutes.OCR_TOOL) {
                     UtilitiesScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateHome = { navigateToHomeDirectly() }
                     )
                 }
             }

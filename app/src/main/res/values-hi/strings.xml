@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">ऑलटूल्स मास्टर</string>
+    <string name="app_tagline">ऑल-इन-वन पीडीएफ, फोटो और स्कैनर</string>
+    <string name="official_website">ऑफिशियल वेबसाइट</string>
+    <string name="whatsapp_support">व्हाट्सएप सपोर्ट</string>
+
+    <string name="back">वापस</string>
+    <string name="home">होम</string>
+    <string name="cd_back">पीछे जाएं</string>
+    <string name="cd_home">होम पर जाएं</string>
+    <string name="camera_permission_needed">दस्तावेज़ स्कैन करने के लिए कैमरा अनुमति ज़रूरी है</string>
+    <string name="open_settings">सेटिंग्स खोलें</string>
+    <string name="camera_open_failed">कैमरा नहीं खुल पाया। कृपया कैमरा अनुमति दें।</string>
+    <string name="added_to_favorites">पसंदीदा में जोड़ा गया</string>
+    <string name="removed_from_favorites">पसंदीदा से हटाया गया</string>
+    <string name="undo">पूर्ववत करें</string>
+    <string name="no_recent_files">अभी तक कोई हाल की फ़ाइल नहीं</string>
+    <string name="open_a_tool">कोई टूल खोलें</string>
+    <string name="clear_cache">अस्थायी कैश साफ़ करें</string>
+    <string name="cache_cleared">कैश साफ़ हो गया। %1$s जगह खाली हुई।</string>
+</resources>

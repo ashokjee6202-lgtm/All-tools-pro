@@ -49,7 +49,8 @@ enum class QrType(val label: String) {
 @Composable
 fun QrToolsScreen(
     initialScanMode: Boolean = false,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -140,7 +141,8 @@ fun QrToolsScreen(
             AppTopBar(
                 title = Strings.get("cat_qr"),
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateHome = onNavigateHome
             )
         }
     ) { innerPadding ->

@@ -28,7 +28,8 @@ import com.example.util.Strings
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UtilitiesScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var selectedUtilityTab by remember { mutableIntStateOf(0) }
@@ -63,7 +64,8 @@ fun UtilitiesScreen(
             AppTopBar(
                 title = Strings.get("cat_utilities"),
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateHome = onNavigateHome
             )
         }
     ) { innerPadding ->
@@ -124,25 +126,27 @@ fun UtilitiesScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedButton(
-                    onClick = {
-                        val bmp = com.example.util.SampleDataProvider.createSampleDocumentBitmap()
-                        ocrSourceFileName = "Sample Tax Invoice (${bmp.width}x${bmp.height})"
-                        extractedOcrText = "TAX INVOICE / बिल\nInvoice #: ATP-2026-9041\nDate: 12 Oct 2026\nBilled To: Ashok Kumar\nAccount ID: ATP-PREMIUM-USER\n\nItems:\n1. Document Scanning & OCR Pro - ₹ 499.00\n2. Unlimited PDF Resizer & Compressor - ₹ 799.00\n3. Handwriting Generator Module - ₹ 299.00\n4. High-Speed UPI QR Suite - ₹ 199.00\n5. 100% Offline Privacy Engine - FREE\n\nTotal Payable: ₹ 1,796.00\nStatus: PAID / सत्यापित"
-                    },
-                    modifier = Modifier.fillMaxWidth().testTag("ocr_sample_btn"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (com.example.util.LocaleManager.isHindi()) "⚡ नमूना दस्तावेज़ से टेक्स्ट निकालें" else "⚡ Load Sample Invoice for OCR",
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                if (com.example.BuildConfig.DEBUG) {
+                    OutlinedButton(
+                        onClick = {
+                            val bmp = com.example.util.SampleDataProvider.createSampleDocumentBitmap()
+                            ocrSourceFileName = "Sample Tax Invoice (${bmp.width}x${bmp.height})"
+                            extractedOcrText = "TAX INVOICE / बिल\nInvoice #: ATP-2026-9041\nDate: 12 Oct 2026\nBilled To: Ashok Kumar\nAccount ID: ATP-PREMIUM-USER\n\nItems:\n1. Document Scanning & OCR Pro - ₹ 499.00\n2. Unlimited PDF Resizer & Compressor - ₹ 799.00\n3. Handwriting Generator Module - ₹ 299.00\n4. High-Speed UPI QR Suite - ₹ 199.00\n5. 100% Offline Privacy Engine - FREE\n\nTotal Payable: ₹ 1,796.00\nStatus: PAID / सत्यापित"
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("ocr_sample_btn"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (com.example.util.LocaleManager.isHindi()) "⚡ नमूना दस्तावेज़ से टेक्स्ट निकालें" else "⚡ Load Sample Invoice for OCR",
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
                 extractedOcrText?.let { text ->

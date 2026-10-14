@@ -37,6 +37,7 @@ import com.example.ui.components.ResultSummaryCard
 import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
 import com.example.util.ImageProcessor
+import com.example.util.LocaleManager
 import com.example.util.PdfCompressResult
 import com.example.util.PdfPagePreset
 import com.example.util.PdfProcessor
@@ -59,7 +60,8 @@ enum class PdfSubTool(val labelKey: String) {
 @Composable
 fun PdfToolsScreen(
     initialTool: String? = null,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -183,7 +185,8 @@ fun PdfToolsScreen(
             AppTopBar(
                 title = Strings.get("cat_pdf"),
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateHome = onNavigateHome
             )
         }
     ) { innerPadding ->
@@ -242,17 +245,19 @@ fun PdfToolsScreen(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(Strings.get("select_pdf"))
                             }
-                            OutlinedButton(
-                                onClick = { loadSamplePdf() },
-                                modifier = Modifier.weight(1f).testTag("load_sample_pdf_btn"),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                                )
-                            ) {
-                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("⚡ Sample PDF")
+                            if (com.example.BuildConfig.DEBUG) {
+                                OutlinedButton(
+                                    onClick = { loadSamplePdf() },
+                                    modifier = Modifier.weight(1f).testTag("load_sample_pdf_btn"),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                                    )
+                                ) {
+                                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("⚡ Sample PDF")
+                                }
                             }
                         }
                     } else {
@@ -398,31 +403,13 @@ fun PdfToolsScreen(
                     compressResult?.let { res ->
                         Spacer(modifier = Modifier.height(16.dp))
                         ResultSummaryCard(
-                            originalSize = res.originalSizeBytes,
-                            finalSize = res.finalSizeBytes,
-                            reductionPercent = res.reductionPercent,
-                            statusMessage = res.statusMessage
+                            title = if (LocaleManager.isHindi()) "पीडीएफ संपीड़न पूरा हुआ!" else "PDF Compressed Successfully!",
+                            originalSize = ImageProcessor.formatBytes(res.originalSizeBytes),
+                            outputSize = ImageProcessor.formatBytes(res.finalSizeBytes),
+                            reductionRatio = "${res.reductionPercent}%",
+                            onView = { viewFile(context, res.outputFile, "application/pdf") },
+                            onShare = { shareFile(context, res.outputFile, "application/pdf") }
                         )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Button(
-                                onClick = { viewFile(context, res.outputFile, "application/pdf") },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(Strings.get("preview"))
-                            }
-                            OutlinedButton(
-                                onClick = { shareFile(context, res.outputFile, "application/pdf") },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(Strings.get("share"))
-                            }
-                        }
                     }
                 }
 

@@ -1,7 +1,10 @@
 package com.example.model
 
 import android.content.Context
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -86,7 +89,11 @@ object RecentFileManager {
         persist(context)
     }
 
+    val favoriteIds: List<String> get() = favoriteToolIds
+    var lastToggledFavoriteId by mutableStateOf<String?>(null)
+
     fun toggleFavorite(context: Context, toolId: String) {
+        lastToggledFavoriteId = toolId
         if (favoriteToolIds.contains(toolId)) {
             favoriteToolIds.remove(toolId)
         } else {
@@ -96,6 +103,28 @@ object RecentFileManager {
     }
 
     fun isFavorite(toolId: String): Boolean = favoriteToolIds.contains(toolId)
+
+    fun addRecent(recentFile: RecentFile) {
+        recentFiles.removeAll { it.path == recentFile.path }
+        recentFiles.add(0, recentFile)
+        if (recentFiles.size > 50) {
+            recentFiles.removeRange(50, recentFiles.size)
+        }
+    }
+
+    fun saveToDocuments(context: Context, file: File, displayName: String, mimeType: String): RecentFile {
+        val recent = RecentFile(
+            id = System.currentTimeMillis().toString(),
+            name = displayName,
+            path = file.absolutePath,
+            mimeType = mimeType,
+            sizeBytes = file.length(),
+            timestamp = System.currentTimeMillis(),
+            toolId = "doc_scanner"
+        )
+        addRecent(context, file, mimeType, "doc_scanner")
+        return recent
+    }
 
     private fun persist(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

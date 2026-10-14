@@ -41,7 +41,8 @@ data class PathPoint(val offset: Offset, val color: Color, val strokeWidth: Floa
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignatureMakerScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -109,7 +110,8 @@ fun SignatureMakerScreen(
             AppTopBar(
                 title = Strings.get("tool_sign_pdf"),
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateHome = onNavigateHome
             )
         }
     ) { innerPadding ->

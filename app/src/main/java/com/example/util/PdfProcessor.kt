@@ -139,6 +139,14 @@ object PdfProcessor {
         outFile
     }
 
+    suspend fun createPdfFromBitmaps(
+        context: Context,
+        images: List<Bitmap>,
+        preset: PdfPagePreset = PdfPagePreset.A4,
+        marginPt: Int = 20,
+        outputName: String = "Scanned_Document"
+    ): File = imagesToPdf(context, images, preset, marginPt, outputName)
+
     suspend fun compressPdf(
         context: Context,
         sourcePdf: File,

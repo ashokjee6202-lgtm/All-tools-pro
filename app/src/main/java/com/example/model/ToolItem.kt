@@ -167,4 +167,6 @@ object ToolRegistry {
             isPopular = false
         )
     )
+
+    fun getPopularTools(): List<ToolItem> = allTools.filter { it.isPopular }
 }

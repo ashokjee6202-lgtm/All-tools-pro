@@ -39,6 +39,7 @@ import com.example.ui.components.viewFile
 import com.example.util.ImageOutputFormat
 import com.example.util.ImageProcessResult
 import com.example.util.ImageProcessor
+import com.example.util.LocaleManager
 import com.example.util.Strings
 import kotlinx.coroutines.launch
 import java.io.File
@@ -53,7 +54,8 @@ enum class PhotoResizeTab(val titleKey: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoToolsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -125,7 +127,8 @@ fun PhotoToolsScreen(
             AppTopBar(
                 title = Strings.get("cat_photo"),
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateHome = onNavigateHome
             )
         }
     ) { innerPadding ->
@@ -311,29 +314,31 @@ fun PhotoToolsScreen(
                     }
 
                     // Sample Photo Button
-                    OutlinedButton(
-                        onClick = {
-                            val sampleBmp = com.example.util.SampleDataProvider.createSamplePhotoBitmap()
-                            loadedBitmap = sampleBmp
-                            aspectRatio = sampleBmp.width.toFloat() / sampleBmp.height.toFloat()
-                            widthInput = sampleBmp.width.toString()
-                            heightInput = sampleBmp.height.toString()
-                            originalFileSizeBytes = (sampleBmp.width * sampleBmp.height * 3L) / 4
-                            processResult = null
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("load_sample_photo_btn"),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        )
-                    ) {
-                        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (com.example.util.LocaleManager.isHindi()) "⚡ नमूना फोटो लोड करें (तुरंत टेस्ट करें)" else "⚡ Load Sample Photo (Instant Test)",
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    if (com.example.BuildConfig.DEBUG) {
+                        OutlinedButton(
+                            onClick = {
+                                val sampleBmp = com.example.util.SampleDataProvider.createSamplePhotoBitmap()
+                                loadedBitmap = sampleBmp
+                                aspectRatio = sampleBmp.width.toFloat() / sampleBmp.height.toFloat()
+                                widthInput = sampleBmp.width.toString()
+                                heightInput = sampleBmp.height.toString()
+                                originalFileSizeBytes = (sampleBmp.width * sampleBmp.height * 3L) / 4
+                                processResult = null
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("load_sample_photo_btn"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            )
+                        ) {
+                            Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (com.example.util.LocaleManager.isHindi()) "⚡ नमूना फोटो लोड करें (तुरंत टेस्ट करें)" else "⚡ Load Sample Photo (Instant Test)",
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 } else {
                     // Image selected - Show preview & tools
@@ -617,39 +622,18 @@ fun PhotoToolsScreen(
                     // Processed Result
                     processResult?.let { res ->
                         Spacer(modifier = Modifier.height(16.dp))
+                        val reduction = if (originalFileSizeBytes > 0) {
+                            "${(((originalFileSizeBytes - res.finalSizeBytes).toDouble() / originalFileSizeBytes) * 100).toInt().coerceAtLeast(0)}%"
+                        } else null
+
                         ResultSummaryCard(
-                            originalSize = originalFileSizeBytes,
-                            finalSize = res.finalSizeBytes,
-                            reductionPercent = if (originalFileSizeBytes > 0) {
-                                (((originalFileSizeBytes - res.finalSizeBytes).toDouble() / originalFileSizeBytes) * 100).toInt().coerceAtLeast(0)
-                            } else null,
-                            statusMessage = res.statusMessage
+                            title = if (LocaleManager.isHindi()) "फोटो प्रोसेस हो गई!" else "Photo Processed Successfully!",
+                            originalSize = ImageProcessor.formatBytes(originalFileSizeBytes),
+                            outputSize = ImageProcessor.formatBytes(res.finalSizeBytes),
+                            reductionRatio = reduction,
+                            onView = { viewFile(context, res.outputFile, selectedFormat.mimeType) },
+                            onShare = { shareFile(context, res.outputFile, selectedFormat.mimeType) }
                         )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Button(
-                                onClick = { viewFile(context, res.outputFile, selectedFormat.mimeType) },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(imageVector = Icons.Default.Visibility, contentDescription = null)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(Strings.get("preview"))
-                            }
-
-                            OutlinedButton(
-                                onClick = { shareFile(context, res.outputFile, selectedFormat.mimeType) },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(imageVector = Icons.Default.Share, contentDescription = null)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(Strings.get("share"))
-                            }
-                        }
                     }
                 }
             }

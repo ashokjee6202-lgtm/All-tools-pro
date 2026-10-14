@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "AllToolsPro"
+rootProject.name = "AllToolsMaster"
 
 include(":app")

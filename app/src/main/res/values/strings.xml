@@ -1,3 +1,21 @@
 <resources>
-    <string name="app_name">AllToolsPro</string>
+    <string name="app_name">AllToolsMaster</string>
+    <string name="app_tagline">All-in-One PDF, Photo &amp; Scanner</string>
+    <string name="official_website">Official Website</string>
+    <string name="whatsapp_support">WhatsApp Support</string>
+
+    <string name="back">Back</string>
+    <string name="home">Home</string>
+    <string name="cd_back">Go back</string>
+    <string name="cd_home">Go to Home</string>
+    <string name="camera_permission_needed">Camera permission is required to scan documents</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="camera_open_failed">Could not open camera. Please allow camera permission.</string>
+    <string name="added_to_favorites">Added to Favorites</string>
+    <string name="removed_from_favorites">Removed from Favorites</string>
+    <string name="undo">Undo</string>
+    <string name="no_recent_files">No recent files yet</string>
+    <string name="open_a_tool">Open a tool</string>
+    <string name="clear_cache">Clear Temporary Cache</string>
+    <string name="cache_cleared">Cache cleared. %1$s freed.</string>
 </resources>

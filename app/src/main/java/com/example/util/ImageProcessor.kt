@@ -305,4 +305,6 @@ object ImageProcessor {
             else -> "${String.format("%.2f", bytes / (1024.0 * 1024.0))} MB"
         }
     }
+
+    fun formatFileSize(bytes: Long): String = formatBytes(bytes)
 }
