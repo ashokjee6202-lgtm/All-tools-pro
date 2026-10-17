@@ -96,14 +96,16 @@ fun HandwritingScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             // Text Input Box
             Text(
@@ -312,7 +314,7 @@ fun HandwritingScreen(
                             coroutineScope.launch {
                                 val pdf = HandwritingGenerator.exportHandwritingAsPdf(context, generatedPages)
                                 outputPdfFile = pdf
-                                RecentFileManager.addRecent(context, pdf, "application/pdf", "handwriting")
+                                DownloadHelper.downloadFile(context, pdf, mimeType = "application/pdf", toolId = "handwriting")
                             }
                         },
                         modifier = Modifier.weight(1f).testTag("save_hw_pdf_btn"),
@@ -332,7 +334,7 @@ fun HandwritingScreen(
                                     "Handwritten_Page_${previewPageIndex + 1}"
                                 )
                                 outputJpgFile = jpg
-                                RecentFileManager.addRecent(context, jpg, "image/jpeg", "handwriting")
+                                DownloadHelper.downloadFile(context, jpg, mimeType = "image/jpeg", toolId = "handwriting")
                             }
                         },
                         modifier = Modifier.weight(1f).testTag("save_hw_jpg_btn"),
@@ -364,6 +366,18 @@ fun HandwritingScreen(
                             ) {
                                 val mime = if (file.name.endsWith(".pdf")) "application/pdf" else "image/jpeg"
                                 Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            DownloadHelper.downloadFile(context, file, mimeType = mime, toolId = "handwriting")
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(Strings.get("download"))
+                                }
+                                FilledTonalButton(
                                     onClick = { viewFile(context, file, mime) },
                                     modifier = Modifier.weight(1f)
                                 ) {

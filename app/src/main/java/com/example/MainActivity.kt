@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -104,6 +105,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainAppContainer() {
+    var showSplashScreen by remember { mutableStateOf(true) }
+
+    if (showSplashScreen) {
+        SplashScreen(onFinish = { showSplashScreen = false })
+    } else {
+        MainAppContent()
+    }
+}
+
+@Composable
+fun MainAppContent() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -171,6 +183,7 @@ fun MainAppContainer() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             if (isBottomBarVisible && currentRoute != ToolRoutes.DOC_SCANNER) {
@@ -198,7 +211,7 @@ fun MainAppContainer() {
                     val navItemColors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandBlue,
                         selectedTextColor = BrandBlue,
-                        indicatorColor = BrandBlue.copy(alpha = 0.16f),
+                        indicatorColor = BrandBlue.copy(alpha = 0.28f),
                         unselectedIconColor = androidx.compose.ui.graphics.Color(0xFF64748B),
                         unselectedTextColor = androidx.compose.ui.graphics.Color(0xFF64748B)
                     )
@@ -238,7 +251,7 @@ fun MainAppContainer() {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(bottom = innerPadding.calculateBottomPadding()),
             color = MaterialTheme.colorScheme.background
         ) {
             NavHost(

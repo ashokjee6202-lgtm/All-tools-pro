@@ -47,6 +47,7 @@ import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
 import com.example.ui.theme.BrandBlue
 import com.example.ui.theme.BrandPurple
+import com.example.util.DownloadHelper
 import com.example.util.LocaleManager
 import com.example.util.PdfPagePreset
 import com.example.util.Strings
@@ -223,8 +224,16 @@ fun PdfEditorScreen(
                     pageCount = editablePages.size
                 )
 
-                savedPdfFile = tempFile
-                Toast.makeText(context, Strings.get("document_saved"), Toast.LENGTH_SHORT).show()
+                // Save to Downloads folder and show Download Successful notification
+                val downloadedFile = DownloadHelper.downloadFile(
+                    context = context,
+                    sourceFile = tempFile,
+                    customFileName = "${docTitle}.pdf",
+                    mimeType = "application/pdf",
+                    toolId = "doc_scanner"
+                )
+
+                savedPdfFile = downloadedFile
                 onDocumentSaved()
             } catch (e: Exception) {
                 Toast.makeText(context, "Error saving PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -243,6 +252,7 @@ fun PdfEditorScreen(
                 onNavigateHome = onNavigateHome
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             Surface(
                 tonalElevation = 6.dp,
@@ -251,6 +261,7 @@ fun PdfEditorScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
                     // Document Name Field

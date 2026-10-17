@@ -273,11 +273,16 @@ object Strings {
             "extracting_text" -> if (isHi) "टेक्स्ट निकाला जा रहा है..." else "Extracting text with on-device OCR..."
             "copy_text" -> if (isHi) "कॉपी करें" else "Copy"
             "text_copied" -> if (isHi) "टेक्स्ट कॉपी हो गया!" else "Text copied to clipboard!"
-            "export_txt" -> if (isHi) "TXT निर्यात" else "Export TXT"
-            "export_pdf_ocr" -> if (isHi) "पीडीएफ निर्यात" else "Export PDF"
+            "export_txt" -> if (isHi) "TXT डाउनलोड" else "Download TXT"
+            "export_pdf_ocr" -> if (isHi) "पीडीएफ डाउनलोड" else "Download PDF"
             "word_count" -> if (isHi) "शब्द: %d" else "Words: %d"
             "line_count" -> if (isHi) "पंक्तियां: %d" else "Lines: %d"
             "recognized_text" -> if (isHi) "पहचाना गया टेक्स्ट" else "Recognized Text"
+
+            // Downloads & Feedback
+            "download_successful" -> if (isHi) "✅ डाउनलोड सफल!" else "✅ Download Successful!"
+            "download_to_device" -> if (isHi) "डाउनलोड करें" else "Download"
+            "file_saved_downloads" -> if (isHi) "फाइल डाउनलोड्स में सुरक्षित की गई" else "File saved to Downloads"
 
             else -> key
         }

@@ -26,8 +26,10 @@ import com.example.ui.components.AppTopBar
 import com.example.ui.components.shareFile
 import com.example.ui.theme.BrandBlue
 import com.example.ui.theme.BrandPurple
+import com.example.util.DownloadHelper
 import com.example.util.LocaleManager
 import com.example.util.Strings
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
@@ -39,6 +41,7 @@ fun OcrResultScreen(
     onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var editableText by remember { mutableStateOf(initialText) }
 
     val wordCount = remember(editableText) {
@@ -70,7 +73,9 @@ fun OcrResultScreen(
             FileOutputStream(file).use { fos ->
                 fos.write(editableText.toByteArray())
             }
-            shareFile(context, file, "text/plain")
+            coroutineScope.launch {
+                DownloadHelper.downloadFile(context, file, mimeType = "text/plain", toolId = "ocr_tool")
+            }
         } catch (e: Exception) {
             Toast.makeText(context, "Export error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
@@ -85,6 +90,7 @@ fun OcrResultScreen(
                 onNavigateHome = onNavigateHome
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             Surface(
                 tonalElevation = 6.dp,
@@ -93,6 +99,7 @@ fun OcrResultScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {

@@ -44,13 +44,14 @@ fun ToolsCatalogScreen(
                 title = Strings.get(if (showFavoritesOnly) "nav_favorites" else "nav_tools"),
                 canNavigateBack = false
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             if (!showFavoritesOnly) {
                 LazyRow(
@@ -103,6 +104,7 @@ fun ToolsCatalogScreen(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     val chunkedTools = filteredTools.chunked(2)

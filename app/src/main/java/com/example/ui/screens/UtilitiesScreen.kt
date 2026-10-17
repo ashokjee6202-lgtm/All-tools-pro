@@ -1,5 +1,9 @@
 package com.example.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,10 +24,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.ui.components.AppTopBar
+import com.example.util.DocumentOcrEngine
+import com.example.util.DownloadHelper
 import com.example.util.ImageProcessor
 import com.example.util.QrCodeGenerator
 import com.example.util.Strings
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +42,7 @@ fun UtilitiesScreen(
     onNavigateHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var selectedUtilityTab by remember { mutableIntStateOf(0) }
 
     // File size calculator state
@@ -40,6 +51,7 @@ fun UtilitiesScreen(
     // OCR State
     var extractedOcrText by remember { mutableStateOf<String?>(null) }
     var ocrSourceFileName by remember { mutableStateOf<String?>(null) }
+    var isOcrRunning by remember { mutableStateOf(false) }
 
     val ocrImagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -48,12 +60,16 @@ fun UtilitiesScreen(
             val bmp = ImageProcessor.loadBitmapFromUri(context, uri)
             if (bmp != null) {
                 ocrSourceFileName = "Document Image (${bmp.width}x${bmp.height})"
-                // Decode QR if present, otherwise analyze image metadata & extract text
-                val qrText = QrCodeGenerator.scanQrFromBitmap(bmp)
-                if (qrText != null) {
-                    extractedOcrText = "Decoded Barcode/QR Data:\n\n$qrText"
-                } else {
-                    extractedOcrText = "Document Scan OCR Summary:\n\nResolution: ${bmp.width} x ${bmp.height} px\nColor Space: 32-bit ARGB\nApproximate Print Size @ 300 DPI: ${String.format("%.1f", bmp.width / 300.0)} x ${String.format("%.1f", bmp.height / 300.0)} inches\n\n(Note: Full on-device text OCR model runs offline on detected text boundaries)"
+                isOcrRunning = true
+                coroutineScope.launch {
+                    try {
+                        val result = DocumentOcrEngine.recognizeText(bmp)
+                        extractedOcrText = result.fullText
+                    } catch (e: Exception) {
+                        extractedOcrText = "OCR Error: ${e.localizedMessage}"
+                    } finally {
+                        isOcrRunning = false
+                    }
                 }
             }
         }
@@ -67,14 +83,16 @@ fun UtilitiesScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             TabRow(selectedTabIndex = selectedUtilityTab) {
                 Tab(
@@ -117,9 +135,25 @@ fun UtilitiesScreen(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
-                            text = "Extract text, barcodes, or layout specs offline",
+                            text = "Extract Hindi / English text offline with high accuracy",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                if (isOcrRunning) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = Strings.get("extracting_text"),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
@@ -158,28 +192,85 @@ fun UtilitiesScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
-                            Text(
-                                text = "Extracted Text:",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Extracted Text:",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = "${text.split(Regex("\\s+")).count { it.isNotBlank() }} words",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = text,
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Button(
-                                onClick = {
-                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                    val clip = android.content.ClipData.newPlainText("OCR Text", text)
-                                    clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, "Copied text to clipboard!", Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.fillMaxWidth()
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = null)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Copy Text")
+                                Button(
+                                    onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        val clip = ClipData.newPlainText("OCR Text", text)
+                                        clipboard.setPrimaryClip(clip)
+                                        Toast.makeText(context, "Copied text to clipboard!", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Copy")
+                                }
+
+                                FilledTonalButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_SUBJECT, "Extracted Text")
+                                            putExtra(Intent.EXTRA_TEXT, text)
+                                        }
+                                        context.startActivity(Intent.createChooser(intent, "Share Extracted Text"))
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Share")
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            val txtFile = File(context.cacheDir, "OCR_Extracted_${System.currentTimeMillis()}.txt")
+                                            FileOutputStream(txtFile).use { fos ->
+                                                fos.write(text.toByteArray())
+                                            }
+                                            DownloadHelper.downloadFile(
+                                                context = context,
+                                                sourceFile = txtFile,
+                                                mimeType = "text/plain",
+                                                toolId = "ocr_tool"
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Download")
+                                }
                             }
                         }
                     }

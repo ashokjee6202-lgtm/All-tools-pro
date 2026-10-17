@@ -104,6 +104,7 @@ fun CropPerspectiveScreen(
                 onNavigateHome = onNavigateHome
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             Surface(
                 tonalElevation = 8.dp,
@@ -112,6 +113,7 @@ fun CropPerspectiveScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
                     // Quick Transform Controls

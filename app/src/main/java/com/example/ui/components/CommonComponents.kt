@@ -483,6 +483,7 @@ fun ResultSummaryCard(
     reductionRatio: String? = null,
     onView: () -> Unit,
     onShare: () -> Unit,
+    onDownload: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -534,24 +535,35 @@ fun ResultSummaryCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = onView,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)
-                ) {
-                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(Strings.get("preview"))
+                if (onDownload != null) {
+                    Button(
+                        onClick = onDownload,
+                        modifier = Modifier.weight(1.1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)
+                    ) {
+                        Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(Strings.get("download"))
+                    }
                 }
 
                 FilledTonalButton(
+                    onClick = onView,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(Strings.get("preview"))
+                }
+
+                OutlinedButton(
                     onClick = onShare,
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(Strings.get("share"))
                 }
             }

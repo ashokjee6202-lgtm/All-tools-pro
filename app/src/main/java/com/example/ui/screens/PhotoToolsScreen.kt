@@ -36,6 +36,7 @@ import com.example.ui.components.AppTopBar
 import com.example.ui.components.ResultSummaryCard
 import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
+import com.example.util.DownloadHelper
 import com.example.util.ImageOutputFormat
 import com.example.util.ImageProcessResult
 import com.example.util.ImageProcessor
@@ -130,14 +131,16 @@ fun PhotoToolsScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             // Mode Tabs
             ScrollableTabRow(
@@ -236,7 +239,7 @@ fun PhotoToolsScreen(
                                 )
                                 val zip = ImageProcessor.createZipArchive(context, outFiles, "Batch_Resized_Photos")
                                 batchZipFile = zip
-                                RecentFileManager.addRecent(context, zip, "application/zip", "photo_resize")
+                                DownloadHelper.downloadFile(context, zip, mimeType = "application/zip", toolId = "photo_resize")
                                 isProcessing = false
                             }
                         },
@@ -264,13 +267,36 @@ fun PhotoToolsScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Button(
-                                    onClick = { shareFile(context, zip, "application/zip") },
-                                    modifier = Modifier.fillMaxWidth()
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(imageVector = Icons.Default.Share, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Share ZIP Archive")
+                                    Button(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                DownloadHelper.downloadFile(
+                                                    context = context,
+                                                    sourceFile = zip,
+                                                    mimeType = "application/zip",
+                                                    toolId = "photo_resize"
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(imageVector = Icons.Default.Download, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Download")
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = { shareFile(context, zip, "application/zip") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(imageVector = Icons.Default.Share, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Share")
+                                    }
                                 }
                             }
                         }
@@ -599,7 +625,12 @@ fun PhotoToolsScreen(
 
                                 processResult = res
                                 res?.let {
-                                    RecentFileManager.addRecent(context, it.outputFile, selectedFormat.mimeType, "photo_resize")
+                                    DownloadHelper.downloadFile(
+                                        context = context,
+                                        sourceFile = it.outputFile,
+                                        mimeType = selectedFormat.mimeType,
+                                        toolId = "photo_resize"
+                                    )
                                 }
                                 isProcessing = false
                             }
@@ -632,7 +663,17 @@ fun PhotoToolsScreen(
                             outputSize = ImageProcessor.formatBytes(res.finalSizeBytes),
                             reductionRatio = reduction,
                             onView = { viewFile(context, res.outputFile, selectedFormat.mimeType) },
-                            onShare = { shareFile(context, res.outputFile, selectedFormat.mimeType) }
+                            onShare = { shareFile(context, res.outputFile, selectedFormat.mimeType) },
+                            onDownload = {
+                                coroutineScope.launch {
+                                    DownloadHelper.downloadFile(
+                                        context = context,
+                                        sourceFile = res.outputFile,
+                                        mimeType = selectedFormat.mimeType,
+                                        toolId = "photo_resize"
+                                    )
+                                }
+                            }
                         )
                     }
                 }

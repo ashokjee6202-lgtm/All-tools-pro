@@ -106,14 +106,15 @@ fun SettingsScreen(
                 title = Strings.get("nav_settings"),
                 canNavigateBack = false
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             // App Header Card with new logo and dynamic version
             Card(
@@ -423,7 +424,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         // Cache confirmation dialog

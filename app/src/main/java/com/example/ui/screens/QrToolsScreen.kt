@@ -31,6 +31,7 @@ import com.example.model.RecentFileManager
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
+import com.example.util.DownloadHelper
 import com.example.util.ImageProcessor
 import com.example.util.QrCodeGenerator
 import com.example.util.Strings
@@ -144,14 +145,16 @@ fun QrToolsScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             // Mode Toggle (Generator vs Scanner)
             Row(
@@ -426,7 +429,7 @@ fun QrToolsScreen(
                                         coroutineScope.launch {
                                             val png = QrCodeGenerator.saveQrAsPng(context, bmp, "QR_Code")
                                             exportedFile = png
-                                            RecentFileManager.addRecent(context, png, "image/png", "qr_generator")
+                                            DownloadHelper.downloadFile(context, png, mimeType = "image/png", toolId = "qr_generator")
                                         }
                                     },
                                     modifier = Modifier.weight(1f)
@@ -441,7 +444,7 @@ fun QrToolsScreen(
                                         coroutineScope.launch {
                                             val pdf = QrCodeGenerator.saveQrAsPdf(context, bmp, "QR_Code_${selectedQrType.name}")
                                             exportedFile = pdf
-                                            RecentFileManager.addRecent(context, pdf, "application/pdf", "qr_generator")
+                                            DownloadHelper.downloadFile(context, pdf, mimeType = "application/pdf", toolId = "qr_generator")
                                         }
                                     },
                                     modifier = Modifier.weight(1f)
@@ -461,7 +464,19 @@ fun QrToolsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             val mime = if (file.name.endsWith(".pdf")) "application/pdf" else "image/png"
-                            Button(onClick = { viewFile(context, file, mime) }, modifier = Modifier.weight(1f)) {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        DownloadHelper.downloadFile(context, file, mimeType = mime, toolId = "qr_generator")
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(Strings.get("download"))
+                            }
+                            FilledTonalButton(onClick = { viewFile(context, file, mime) }, modifier = Modifier.weight(1f)) {
                                 Text("Preview")
                             }
                             OutlinedButton(onClick = { shareFile(context, file, mime) }, modifier = Modifier.weight(1f)) {

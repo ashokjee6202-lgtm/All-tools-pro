@@ -117,21 +117,11 @@ fun RecentFilesScreen(
                 canNavigateBack = false
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onScanDocument,
-                containerColor = BrandBlue,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier.testTag("scan_new_doc_fab")
-            ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = Strings.get("scan_new_docs"))
-            }
-        }
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
         ) {
             // Search Bar & Multi-Select Toggle
@@ -335,7 +325,7 @@ fun RecentFilesScreen(
                 if (isGridView) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxSize()
@@ -370,7 +360,7 @@ fun RecentFilesScreen(
                     }
                 } else {
                     LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {

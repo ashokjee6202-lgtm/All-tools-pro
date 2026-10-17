@@ -36,6 +36,7 @@ import com.example.ui.components.AppTopBar
 import com.example.ui.components.ResultSummaryCard
 import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
+import com.example.util.DownloadHelper
 import com.example.util.ImageProcessor
 import com.example.util.LocaleManager
 import com.example.util.PdfCompressResult
@@ -188,14 +189,16 @@ fun PdfToolsScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             // Sub-tool switcher tabs
             ScrollableTabRow(
@@ -380,7 +383,7 @@ fun PdfToolsScreen(
                                     )
                                     compressResult = result
                                     outputPdfFile = result.outputFile
-                                    RecentFileManager.addRecent(context, result.outputFile, "application/pdf", "pdf_compress")
+                                    DownloadHelper.downloadFile(context, result.outputFile, mimeType = "application/pdf", toolId = "pdf_compress")
                                     isProcessing = false
                                     progressInfo = null
                                 }
@@ -408,7 +411,12 @@ fun PdfToolsScreen(
                             outputSize = ImageProcessor.formatBytes(res.finalSizeBytes),
                             reductionRatio = "${res.reductionPercent}%",
                             onView = { viewFile(context, res.outputFile, "application/pdf") },
-                            onShare = { shareFile(context, res.outputFile, "application/pdf") }
+                            onShare = { shareFile(context, res.outputFile, "application/pdf") },
+                            onDownload = {
+                                coroutineScope.launch {
+                                    DownloadHelper.downloadFile(context, res.outputFile, mimeType = "application/pdf", toolId = "pdf_compress")
+                                }
+                            }
                         )
                     }
                 }
@@ -989,6 +997,23 @@ fun PdfToolsScreen(
                         ) {
                             val mime = if (file.name.endsWith(".zip")) "application/zip" else "application/pdf"
                             Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        DownloadHelper.downloadFile(
+                                            context = context,
+                                            sourceFile = file,
+                                            mimeType = mime,
+                                            toolId = "pdf_tools"
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.weight(1.1f)
+                            ) {
+                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(Strings.get("download"))
+                            }
+                            FilledTonalButton(
                                 onClick = { viewFile(context, file, mime) },
                                 modifier = Modifier.weight(1f)
                             ) {

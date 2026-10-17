@@ -31,6 +31,7 @@ import com.example.model.RecentFileManager
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.shareFile
 import com.example.ui.components.viewFile
+import com.example.util.DownloadHelper
 import com.example.util.Strings
 import kotlinx.coroutines.launch
 import java.io.File
@@ -95,12 +96,16 @@ fun SignatureMakerScreen(
                 FileOutputStream(file).use { pdfDoc.writeTo(it) }
                 pdfDoc.close()
                 exportedFile = file
-                RecentFileManager.addRecent(context, file, "application/pdf", "sign_pdf")
+                coroutineScope.launch {
+                    DownloadHelper.downloadFile(context, file, mimeType = "application/pdf", toolId = "sign_pdf")
+                }
             } else {
                 val file = File(context.cacheDir, "Signature_${System.currentTimeMillis()}.png")
                 FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 exportedFile = file
-                RecentFileManager.addRecent(context, file, "image/png", "sign_pdf")
+                coroutineScope.launch {
+                    DownloadHelper.downloadFile(context, file, mimeType = "image/png", toolId = "sign_pdf")
+                }
             }
         }
     }
@@ -113,13 +118,15 @@ fun SignatureMakerScreen(
                 onNavigateBack = onNavigateBack,
                 onNavigateHome = onNavigateHome
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
-                .padding(16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             Text(
                 text = "Draw your digital signature below:",
@@ -254,7 +261,19 @@ fun SignatureMakerScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             val mime = if (file.name.endsWith(".pdf")) "application/pdf" else "image/png"
-                            Button(onClick = { viewFile(context, file, mime) }, modifier = Modifier.weight(1f)) {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        DownloadHelper.downloadFile(context, file, mimeType = mime, toolId = "sign_pdf")
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(Strings.get("download"))
+                            }
+                            FilledTonalButton(onClick = { viewFile(context, file, mime) }, modifier = Modifier.weight(1f)) {
                                 Text("Preview")
                             }
                             OutlinedButton(onClick = { shareFile(context, file, mime) }, modifier = Modifier.weight(1f)) {
